@@ -91,7 +91,9 @@
       </div>
     </div>
 
-    <button @click="saveProduct" type="submit" class="btn btn-lg btn-primary">Save</button>
+    <button v-if="product_variant[0].tags.length >= 1" @click="saveProduct" type="submit" class="btn btn-lg btn-primary">Save</button>
+    <button v-else type="submit" class="btn btn-lg btn-primary disabled-btn">Save</button>
+
     <button type="button" class="btn btn-secondary btn-lg">Cancel</button>
   </section>
 </template>
@@ -189,9 +191,12 @@ export default {
         product_variant_prices: this.product_variant_prices
       }
 
-
-      axios.post('/product', product).then(response => {
+      axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+      let token = document.getElementsByName("csrfmiddlewaretoken");
+      axios.defaults.headers.common['X-CSRFToken'] = token[0].value;
+      axios.post('/product/create/', product).then(response => {
         console.log(response.data);
+        alart('Successfully Added')
       }).catch(error => {
         console.log(error);
       })
@@ -206,3 +211,9 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+  .disabled-btn {
+    cursor: not-allowed !important;
+  }
+</style>

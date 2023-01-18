@@ -10,7 +10,7 @@
 
 
 <div class="card">
-    <form action="" method="get" class="card-header">
+    <form action="/product/list" method="get" class="card-header">
         <div class="form-row justify-content-between">
             <div class="col-md-2">
                 <input type="text" name="title" placeholder="Product Title" class="form-control">
@@ -18,7 +18,13 @@
             <div class="col-md-2">
                 <select name="variant" id="" class="form-control">
                     <option selected disabled>--Select A Variant--</option>
-
+                    {% for var in variants %}
+                        <optgroup label="{{var.title}}">
+                            {% for variant in var.productvariant.all %}
+                                <option>{{variant.variant_title}}</option>
+                            {% endfor %}
+                        </optgroup>
+                    {% endfor %}
                 </select>
             </div>
 
@@ -55,51 +61,28 @@
                 </thead>
 
                 <tbody>
+                {% for product in page_obj %}
                 <tr>
-                    <td>1</td>
-                    <td>T-Shirt <br> Created at : 25-Aug-2020</td>
-                    <td>Quality product in low cost</td>
+
+                    <td>{{ page_obj.start_index|add:forloop.counter0 }}</td>
+                    <td>{{ product.title }} <br> Created at : {{ product.created_at }}</td>
+                    <td>{{ product.description }}</td>
                     <td>
-                        <dl class="row mb-0" style="height: 80px; overflow: hidden" id="variant">
-                                <dt class="col-sm-3 pb-0">
-                                    XL/ Black/ Full
+                        <dl class="row mb-0" style="height: 80px; overflow: hidden" id="variant{{ forloop.counter }}">
+                            {% for prod_var_price in product.productvariantprice.all %}
+                                <dt class="col-sm-3 pb-0"> 
+                                    {{ prod_var_price.product_variant_one.variant_title }} / {{ prod_var_price.product_variant_two.variant_title }} / {{ prod_var_price.product_variant_three.variant_title }}
                                 </dt>
                                 <dd class="col-sm-9">
                                     <dl class="row mb-0">
-                                        <dd class="col-sm-4 pb-0">Price : 200.0</dd>
-                                        <dd class="col-sm-8 pb-0">InStock : 50.</dd>
+                                        <dd class="col-sm-4 pb-0">Price : {{ prod_var_price.price }}</dd>
+                                        <dd class="col-sm-8 pb-0">InStock : {{ prod_var_price.stock }}</dd>
                                     </dl>
                                 </dd>
-                                <dt class="col-sm-3 pb-0">
-                                    XL/ Black/ Half
-                                </dt>
-                                <dd class="col-sm-9">
-                                    <dl class="row mb-0">
-                                        <dd class="col-sm-4 pb-0">Price : 200.0</dd>
-                                        <dd class="col-sm-8 pb-0">InStock : 50.</dd>
-                                    </dl>
-                                </dd>
-                                <dt class="col-sm-3 pb-0">
-                                    L/ Black/ Full
-                                </dt>
-                                <dd class="col-sm-9">
-                                    <dl class="row mb-0">
-                                        <dd class="col-sm-4 pb-0">Price : 200.0</dd>
-                                        <dd class="col-sm-8 pb-0">InStock : 50.</dd>
-                                    </dl>
-                                </dd>
-                                <dt class="col-sm-3 pb-0">
-                                    L/ Black/ Half
-                                </dt>
-                                <dd class="col-sm-9">
-                                    <dl class="row mb-0">
-                                        <dd class="col-sm-4 pb-0">Price : 200.0</dd>
-                                        <dd class="col-sm-8 pb-0">InStock : 50.</dd>
-                                    </dl>
-                                </dd>
-                            </dl>
-                        <button onclick="$('#variant').toggleClass('h-auto')" class="btn btn-sm btn-link">Show more
-                        </button>
+                            {% endfor %}
+                        </dl>
+                        <button onclick="$('#variant{{ forloop.counter }}').toggleClass('h-auto')" class="btn btn-sm btn-link">Show more
+                            </button>
                     </td>
                     <td>
                         <div class="btn-group btn-group-sm">
@@ -107,6 +90,7 @@
                         </div>
                     </td>
                 </tr>
+                {% endfor %}
                 </tbody>
 
             </table>
@@ -117,12 +101,153 @@
     <div class="card-footer">
         <div class="row justify-content-between">
             <div class="col-md-6">
-                <p>Showing 1 to 10 out of 100</p>
+                <!-- <p>Showing 1 to 10 out of 100</p> -->
+                <p>Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} out of {{ page_obj.paginator.count }}</p>
             </div>
             <div class="col-md-2">
-
+                <div class="pagination">
+                    
+                    <nav aria-label="Page navigation example">
+                        <ul class="pagination">
+                          <li class="page-item">
+                            <a id="prev" class="page-link" href="#" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                          </li>
+                          <li class="page-item">
+                            <a id="first-position" class="page-link" href="#">1</a>
+                          </li>
+                          <li class="page-item"><a id="second-position" class="page-link" href="#">2</a></li>
+                          <li class="page-item"><a id="third-position" class="page-link" href="#">3</a></li>
+                          <li class="page-item"><a id="fourth-position" class="page-link" href="#">4</a></li>
+                          <li class="page-item">
+                            <a id="next" class="page-link" href="#" aria-label="Next">
+                              <span aria-hidden="true">&raquo;</span>
+                            </a>
+                          </li>
+                        </ul>
+                      </nav>
+                </div>
             </div>
         </div>
     </div>
 </div>
 {% endblock %}
+
+{% block scripts %}
+    <script>
+        console.log('ok')
+        let firstPosition = document.getElementById('first-position');
+        let secondPosition = document.getElementById('second-position');
+        let thirdPosition = document.getElementById('third-position');
+        let fourthPosition = document.getElementById('fourth-position');
+        let prevBtn = document.getElementById('prev');
+        let nextBtn = document.getElementById('next');
+        let currentPage = '{{ page_obj.number }}';
+        console.log(currentPage)
+
+        if(currentPage <= 4) {
+            console.log('smaller')
+            firstPosition.innerText = 1;
+            secondPosition.innerText = 2;
+            thirdPosition.innerText = 3;
+            fourthPosition.innerText = 4;
+        } else {
+            firstPosition.innerText = parseInt(currentPage) - 3;
+            secondPosition.innerText = parseInt(currentPage) - 2;
+            thirdPosition.innerText = parseInt(currentPage) - 1;
+            fourthPosition.innerText = parseInt(currentPage) - 0;
+            console.log(firstPosition)
+        }
+
+        let allPaginationBtns = document.getElementsByClassName('page-item');
+        for(let i=0; i<allPaginationBtns.length; i++) {
+            if(allPaginationBtns[i].innerText == currentPage){
+                allPaginationBtns[i].classList.add('active');
+            } else {
+                allPaginationBtns[i].classList.remove('active');
+            }
+        }
+
+        firstPosition.addEventListener('click', (e) => {
+            e.preventDefault();
+            let page_no = e.target.innerText;
+            let url = window.location.href;
+            window.location = getToPage(url, page_no);
+        })
+        secondPosition.addEventListener('click', (e) => {
+            e.preventDefault();
+            let page_no = e.target.innerText;
+            let url = window.location.href;
+            window.location = getToPage(url, page_no);
+        })
+        thirdPosition.addEventListener('click', (e) => {
+            e.preventDefault();
+            let page_no = e.target.innerText;
+            let url = window.location.href;
+            window.location = getToPage(url, page_no);
+        })
+        fourthPosition.addEventListener('click', (e) => {
+            e.preventDefault();
+            let page_no = e.target.innerText;
+            let url = window.location.href;
+            window.location = getToPage(url, page_no);
+        })
+        nextBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            let page_no = e.target.innerText;
+            let url = window.location.href;
+            window.location = getToPage(url, page_no);
+        })
+        prevBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            let url = window.location.href;
+            if(parseInt(currentPage)-1 >= 1){
+                window.location = getToPage(url, parseInt(currentPage)-1);
+            }
+        })
+        nextBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            let url = window.location.href;
+            if(parseInt(currentPage)+1 <= parseInt('{{ page_obj.paginator.num_pages }}')){
+                window.location = getToPage(url, parseInt(currentPage)+1);
+            }
+        })
+        console.log(currentPage)
+        function getToPage(url, page_no) {
+            let currentURL = url;
+            let urlArray = currentURL.split("?");
+            if(urlArray.length >= 2) {
+                let params = urlArray[1].split("&");
+                let newParams = "";
+                let found = false;
+                for (let i = 0; i < params.length; i++) {
+                    let param = params[i].split("=");
+                    if (param[0] === "page") {
+                        param[1] = page_no;
+                        found = true;
+                        
+                    }
+                    newParams += param.join("=") + (i < params.length - 1 ? "&" : "");
+                    
+                }
+                let newURL = "";
+                if(found) {
+                    newURL = urlArray[0] + "?" + newParams;
+                } else {
+                    if(currentURL.includes('?')){
+                        newURL = currentURL + `&page=${page_no}`;
+                    } else {
+                        newURL = currentURL + `?page=${page_no}`;
+                    }
+                }
+                return newURL
+            } else {
+                return urlArray[0] + `?page=${page_no}`;
+            }
+        }
+
+
+
+    </script>
+{% endblock scripts %}

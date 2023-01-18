@@ -14,6 +14,18 @@ class Product(TimeStampMixin):
     sku = models.SlugField(max_length=255, unique=True)
     description = models.TextField()
 
+    # @property
+    # def get_prod_var_prices(self, price_from=None, price_to=None, date=None):
+    #     if price_from == None and price_to == None and date == None:
+    #         prod_variant_prices = self.productvariantprice_set.all()
+    #     elif price_from and price_to:
+    #         prod_variant_prices = self.productvariantprice_set.filter(price__range=(price_from, price_to))
+    #     # elif price_from and price_to == None:
+    #     #     prod_variant_prices = self.productvariantprice_set.filter(price__range=(price_from, price_to))
+
+    #     return prod_variant_prices
+
+    # @property
 
 class ProductImage(TimeStampMixin):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
@@ -22,7 +34,7 @@ class ProductImage(TimeStampMixin):
 
 class ProductVariant(TimeStampMixin):
     variant_title = models.CharField(max_length=255)
-    variant = models.ForeignKey(Variant, on_delete=models.CASCADE)
+    variant = models.ForeignKey(Variant, on_delete=models.CASCADE, related_name='productvariant')
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
 
 
@@ -35,4 +47,4 @@ class ProductVariantPrice(TimeStampMixin):
                                               related_name='product_variant_three')
     price = models.FloatField()
     stock = models.FloatField()
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='productvariantprice')
